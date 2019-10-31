@@ -3,9 +3,10 @@ package sumologic
 import (
 	"errors"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
+
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func dataSourceSumologicCollector() *schema.Resource {
@@ -59,7 +60,7 @@ func dataSourceSumologicCollectorRead(d *schema.ResourceData, meta interface{}) 
 			name := cname.(string)
 			collector, err = c.GetCollectorName(name)
 			if err != nil {
-				return fmt.Errorf("collector with name %s not found: %v", name, err)
+				return err
 			}
 			if collector == nil {
 				return fmt.Errorf("collector with name %s not found", name)

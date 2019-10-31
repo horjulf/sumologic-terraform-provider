@@ -3,7 +3,6 @@ package sumologic
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -14,7 +13,7 @@ func TestAccSumologicCollectorMinimal(t *testing.T) {
 	var collector *Collector
 	resourceName := "sumologic_collector.test"
 	resource.Test(t, resource.TestCase{
-		Providers: testAccProviders,
+		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCollectorDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -30,10 +29,10 @@ func TestAccSumologicCollectorMinimal(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string {"lookup_by_name", "destroy"},
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"lookup_by_name", "destroy"},
 			},
 		},
 	})
@@ -43,7 +42,7 @@ func TestAccSumologicCollectorSimple(t *testing.T) {
 	var collector *Collector
 	resourceName := "sumologic_collector.test"
 	resource.Test(t, resource.TestCase{
-		Providers: testAccProviders,
+		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCollectorDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,10 +58,10 @@ func TestAccSumologicCollectorSimple(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string {"lookup_by_name", "destroy"},
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"lookup_by_name", "destroy"},
 			},
 		},
 	})
@@ -72,7 +71,7 @@ func TestAccSumologicCollectorLookupByName(t *testing.T) {
 	var collector *Collector
 	resourceName := "sumologic_collector.test"
 	resource.Test(t, resource.TestCase{
-		Providers: testAccProviders,
+		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCollectorDestroy,
 		// TODO: if we keep lookup_by_name, we need to beef up the tests and have 2 steps
 		// TODO: first step creates the resource
@@ -87,10 +86,10 @@ func TestAccSumologicCollectorLookupByName(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string {"lookup_by_name", "destroy"},
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"lookup_by_name", "destroy"},
 			},
 		},
 	})
@@ -100,7 +99,7 @@ func TestAccSumologicCollectorAllConfig(t *testing.T) {
 	var collector *Collector
 	resourceName := "sumologic_collector.test"
 	resource.Test(t, resource.TestCase{
-		Providers: testAccProviders,
+		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCollectorDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -116,10 +115,10 @@ func TestAccSumologicCollectorAllConfig(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string {"lookup_by_name", "destroy"},
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"lookup_by_name", "destroy"},
 			},
 		},
 	})
@@ -129,7 +128,7 @@ func TestAccSumologicCollectorChangeConfig(t *testing.T) {
 	var collector *Collector
 	resourceName := "sumologic_collector.test"
 	resource.Test(t, resource.TestCase{
-		Providers: testAccProviders,
+		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCollectorDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -144,10 +143,10 @@ func TestAccSumologicCollectorChangeConfig(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string {"lookup_by_name", "destroy"},
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"lookup_by_name", "destroy"},
 			},
 			{
 				Config: testAccSumologicCollectorConfigAll,
@@ -171,12 +170,11 @@ func TestAccSumologicCollectorManualDeletion(t *testing.T) {
 
 	deleteCollector := func() {
 		c := testAccProvider.Meta().(*Client)
-		_, err := c.GetCollector(collector.ID)
-		if err != nil {
+		if _, err := c.GetCollector(collector.ID); err != nil {
 			t.Fatal(fmt.Sprintf("attempted to delete collector %d but it does not exist (%s)", collector.ID, err))
 		}
-		err = c.DeleteCollector(collector.ID)
-		if err != nil {
+
+		if err := c.DeleteCollector(collector.ID); err != nil {
 			t.Fatal(fmt.Sprintf("failed to delete collector %d (%s)", collector.ID, err))
 		}
 	}
@@ -196,7 +194,7 @@ func TestAccSumologicCollectorManualDeletion(t *testing.T) {
 			},
 			{
 				PreConfig: deleteCollector, // simulate a manual deletion by deleting the collector between the 2 applies
-				Config: testAccSumologicCollectorConfig,
+				Config:    testAccSumologicCollectorConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCollectorExists("sumologic_collector.test", &collector, t),
 					resource.TestCheckResourceAttr("sumologic_collector.test", "name", "MyCollector"),
@@ -292,12 +290,13 @@ func testAccCheckCollectorDestroy(s *terraform.State) error {
 		if err != nil {
 			return fmt.Errorf("collector destruction check: collector id should be int; got %s", rs.Primary.ID)
 		}
-		_, err = c.GetCollector(id)
-		if err == nil {
+		var collector *Collector
+		collector, err = c.GetCollector(id)
+		if collector != nil && err == nil {
 			return fmt.Errorf("collector destruction check: collector %d is still present", id)
 		}
 		// check that the error is what we expect
-		if ! strings.Contains(err.Error(), "404") {
+		if err != nil {
 			return fmt.Errorf("collector destruction check: unexpected error %s", err)
 		}
 	}

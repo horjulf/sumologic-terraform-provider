@@ -67,9 +67,8 @@ func resourceSumologicCollector() *schema.Resource {
 func resourceSumologicCollectorRead(d *schema.ResourceData, meta interface{}) error {
 	c := meta.(*Client)
 
-	id, err := strconv.Atoi(d.Id())
-
 	var collector *Collector
+	id, err := strconv.Atoi(d.Id())
 	if err != nil {
 		collector, _ = c.GetCollectorName(d.Id())
 		d.SetId(strconv.Itoa(collector.ID))
@@ -109,7 +108,6 @@ func resourceSumologicCollectorCreate(d *schema.ResourceData, meta interface{}) 
 
 	if d.Get("lookup_by_name").(bool) {
 		collector, err := c.GetCollectorName(d.Get("name").(string))
-
 		if err != nil {
 			return err
 		}
@@ -153,14 +151,16 @@ func resourceSumologicCollectorExists(d *schema.ResourceData, meta interface{}) 
 	c := meta.(*Client)
 
 	id, err := strconv.Atoi(d.Id())
-
 	if err != nil {
-		_, err := c.GetCollectorName(d.Id())
-		return err == nil, err
+		return false, nil
 	}
 
-	_, err = c.GetCollector(id)
-	return err == nil, err
+	collector, _ := c.GetCollector(id)
+	if collector != nil {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func resourceToCollector(d *schema.ResourceData) Collector {

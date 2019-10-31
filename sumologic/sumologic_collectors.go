@@ -31,7 +31,7 @@ func (s *Client) GetCollectorName(name string) (*Collector, error) {
 	}
 
 	if data == nil {
-		return nil, fmt.Errorf("collector with name '%s' does not exist", name)
+		return nil, nil
 	}
 
 	var response CollectorResponse
