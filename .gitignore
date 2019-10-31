@@ -94,3 +94,6 @@ fabric.properties
 
 terra.tf
 dist/
+
+# Vendor folder
+/vendor/
