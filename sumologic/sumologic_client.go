@@ -34,6 +34,18 @@ var endpoints = map[string]string{
 
 var rateLimiter = time.Tick(time.Minute / 240)
 
+func listEndpoints() []string {
+	keys := make([]string, len(endpoints))
+
+	i := 0
+	for k := range endpoints {
+		keys[i] = k
+		i++
+	}
+
+	return keys
+}
+
 func (s *Client) PostWithCookies(urlPath string, payload interface{}) ([]byte, []*http.Cookie, error) {
 	relativeURL, err := url.Parse(urlPath)
 	if err != nil {
