@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -170,10 +171,14 @@ func (s *Client) Put(urlPath string, payload interface{}) ([]byte, error) {
 
 	<-rateLimiter
 	resp, err := s.httpClient.Do(req)
-
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("[ERROR] Failed to close HTTP body: %s", err)
+		}
+	}()
 
 	d, _ := ioutil.ReadAll(resp.Body)
 
@@ -193,7 +198,15 @@ func (s *Client) Get(urlPath string) ([]byte, string, error) {
 	req.SetBasicAuth(s.AccessID, s.AccessKey)
 
 	<-rateLimiter
-	resp, _ := s.httpClient.Do(req)
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return nil, "", err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("[ERROR] Failed to close HTTP body: %s", err)
+		}
+	}()
 
 	d, _ := ioutil.ReadAll(resp.Body)
 
@@ -215,7 +228,15 @@ func (s *Client) Delete(urlPath string) ([]byte, error) {
 	req.SetBasicAuth(s.AccessID, s.AccessKey)
 
 	<-rateLimiter
-	resp, _ := s.httpClient.Do(req)
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("[ERROR] Failed to close HTTP body: %s", err)
+		}
+	}()
 
 	d, _ := ioutil.ReadAll(resp.Body)
 
@@ -234,7 +255,7 @@ func NewClient(accessID, accessKey, environment, base_url string) (*Client, erro
 		Environment: environment,
 	}
 	if base_url == "" {
-	  base_url = endpoints[client.Environment]
+		base_url = endpoints[client.Environment]
 	}
 	client.BaseURL, _ = url.Parse(base_url)
 
